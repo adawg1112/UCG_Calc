@@ -1,18 +1,23 @@
 @import "tailwindcss";
 
+:root {
+  --theme-main: #6d1818;
+  --theme-accent: #d4af37;
+}
+
 @theme {
-  --color-primary: #d4af37;
-  --color-primary-dark: #dcb022;
+  --color-primary: var(--theme-accent);
+  --color-primary-dark: var(--theme-accent);
   --color-background-light: #f8f8f5;
   --color-background-dark: #221e10;
-  --color-marble-red: #6d1818;
-  --color-gold-accent: #d4af37;
-  --color-gold-vibrant: #ffe14d;
-  --color-gold-opaque: #FFD700;
-  --color-deep-red: #b91c1c;
+  --color-marble-red: var(--theme-main);
+  --color-gold-accent: var(--theme-accent);
+  --color-gold-vibrant: var(--theme-accent);
+  --color-gold-opaque: var(--theme-accent);
+  --color-deep-red: var(--theme-main);
   --color-marble-white: #fcfbf8;
   --color-marble-vein: #e8e2ce;
-  --color-card-red: #8a2c2c;
+  --color-card-red: var(--theme-main);
 
   --font-trajan: "Cinzel", serif;
   --font-display: "Noto Serif", serif;
@@ -24,10 +29,10 @@
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
   }
   .gold-num-shadow {
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 20px rgba(255, 215, 0, 0.4);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 20px var(--theme-accent);
   }
   .gold-metallic-text {
-    background: linear-gradient(180deg, #fffbe6 0%, #ffeaa7 20%, #ffd700 40%, #ffbf00 60%, #e1b12c 80%, #b7791f 100%);
+    background: linear-gradient(180deg, #fffbe6 0%, #ffeaa7 20%, var(--theme-accent) 40%, var(--theme-accent) 60%, #e1b12c 80%, #b7791f 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -35,11 +40,11 @@
     filter: drop-shadow(0 2px 1px rgba(0,0,0,0.5));
   }
   .red-marble-text {
-    color: #6d1818;
+    color: var(--theme-main);
     text-shadow: 0px 1px 0px rgba(255,255,255,0.2), 0px -1px 0px rgba(0,0,0,0.3);
   }
   .gold-bg-metallic {
-    background: linear-gradient(135deg, #e6c86e 0%, #fcf6ba 40%, #d4af37 60%, #aa771c 100%);
+    background: linear-gradient(135deg, #e6c86e 0%, #fcf6ba 40%, var(--theme-accent) 60%, #aa771c 100%);
     box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
   }
   .bg-marble {
@@ -56,5 +61,9 @@
   .calculator-btn:active {
     background-color: rgba(255, 255, 255, 0.5);
     transform: scale(0.95);
+  }
+  .dragging {
+    z-index: 1000 !important;
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5)) brightness(1.1) !important;
   }
 }

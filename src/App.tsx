@@ -22,41 +22,83 @@ const PRESET_AVATARS = [
   '/avatar5.png'
 ];
 
+const THEMES = [
+  { name: 'Default', main: '#6d1818', accent: '#d4af37' },
+  { name: 'Arborial', main: '#2E8B57', accent: '#80461B' },
+  { name: 'Aquatic', main: '#23297A', accent: '#40E0D0' },
+  { name: 'Galaxy', main: '#191970', accent: '#FFFFE0' },
+  { name: 'Chrono', main: '#6A0DAD', accent: '#FFDA03' },
+];
+
 function Calculator({ isOpen, initialValue, onClose, onSave }: any) {
   const [input, setInput] = useState(initialValue || '0');
+  const inputRef = useRef(input);
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
 
   useEffect(() => {
     if (isOpen) {
       setInput(initialValue || '0');
+      
+      const handleKeyDown = (e: KeyboardEvent) => {
+        const key = e.key;
+        if (key >= '0' && key <= '9') {
+          handlePress(key);
+        } else if (key === '+') {
+          handlePress('+');
+        } else if (key === '-') {
+          handlePress('-');
+        } else if (key === '*' || key === 'x') {
+          handlePress('×');
+        } else if (key === '/') {
+          handlePress('÷');
+        } else if (key === 'Enter') {
+          handleCheck();
+        } else if (key === 'Escape') {
+          onClose();
+        } else if (key === 'Backspace') {
+          setInput(prev => prev.length > 1 ? prev.slice(0, -1) : '0');
+        } else if (key === 'c' || key === 'C') {
+          handleClear();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
     }
   }, [isOpen, initialValue]);
 
   if (!isOpen) return null;
 
   const handlePress = (val: string) => {
-    if (input === '0' && !isNaN(Number(val))) {
-      setInput(val);
-    } else {
-      setInput(prev => prev + val);
-    }
+    setInput(prev => {
+      if (prev === '0' && !isNaN(Number(val))) {
+        return val;
+      } else {
+        return prev + val;
+      }
+    });
   };
 
   const handleClear = () => setInput('0');
 
   const handleCheck = () => {
+    const currentInput = inputRef.current;
     try {
-      if (!input || input === '0') {
+      if (!currentInput || currentInput === '0') {
         onSave(0);
         return;
       }
-      const expression = input.replace(/×/g, '*').replace(/÷/g, '/');
+      const expression = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
       // eslint-disable-next-line no-eval
       let result = Math.floor(eval(expression)); 
       if (isNaN(result) || !isFinite(result)) result = 0;
       if (result < 0) result = 0;
       onSave(result);
     } catch (e) {
-      let fallback = parseInt(input) || 0;
+      let fallback = parseInt(currentInput) || 0;
       if (fallback < 0) fallback = 0;
       onSave(fallback);
     }
@@ -66,7 +108,7 @@ function Calculator({ isOpen, initialValue, onClose, onSave }: any) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 font-trajan" onClick={() => onClose()}>
       <div className="flex flex-col landscape:flex-row items-center justify-center gap-6 md:gap-10 animate-in fade-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
         
-        <div className="relative aspect-[60/90] w-40 md:w-56 landscape:w-28 landscape:md:w-40 rounded-xl border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-[0_0_50px_rgba(212,175,55,0.4)] card-shadow shrink-0">
+        <div className="relative aspect-[60/90] w-40 md:w-56 landscape:w-28 landscape:md:w-40 rounded-xl border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-[0_0_50px_var(--theme-accent)] card-shadow shrink-0">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
           <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/40"></div>
           <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
@@ -75,27 +117,27 @@ function Calculator({ isOpen, initialValue, onClose, onSave }: any) {
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none"></div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 md:gap-4 p-2 md:p-4 shrink-0">
+        <div className="grid grid-cols-4 gap-2 md:gap-4 p-2 md:p-4 shrink-0 landscape:gap-1 landscape:p-1">
           {['1','2','3','+','4','5','6','-','7','8','9','×'].map(btn => (
             <button 
               key={btn}
               onClick={() => handlePress(btn)}
-              className={`calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-10 landscape:w-10 landscape:md:h-14 landscape:md:w-14 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-lg font-bold text-white shadow-lg ${['+','-','×'].includes(btn) ? 'bg-white/40' : ''}`}
+              className={`calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-base font-bold text-white shadow-lg ${['+','-','×'].includes(btn) ? 'bg-white/40' : ''}`}
             >
               {btn}
             </button>
           ))}
           
-          <button onClick={handleClear} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-10 landscape:w-10 landscape:md:h-14 landscape:md:w-14 rounded-[2rem] flex items-center justify-center text-sm md:text-xl landscape:text-xs font-bold text-white/80 shadow-lg bg-red-900/40 hover:bg-red-900/60 uppercase tracking-widest">
+          <button onClick={handleClear} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-sm md:text-xl landscape:text-[10px] font-bold text-white/80 shadow-lg bg-red-900/40 hover:bg-red-900/60 uppercase tracking-widest">
             C
           </button>
-          <button onClick={() => handlePress('0')} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-10 landscape:w-10 landscape:md:h-14 landscape:md:w-14 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-lg font-bold text-white shadow-lg">
+          <button onClick={() => handlePress('0')} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-base font-bold text-white shadow-lg">
             0
           </button>
-          <button onClick={handleCheck} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-10 landscape:w-10 landscape:md:h-14 landscape:md:w-14 rounded-[2rem] flex items-center justify-center text-xl font-bold text-gold-opaque shadow-lg bg-gold-accent/20 hover:bg-gold-accent/40">
-            <span className="material-symbols-outlined text-2xl md:text-4xl landscape:text-xl" style={{ fontVariationSettings: "'FILL' 1, 'wght' 700" }}>check</span>
+          <button onClick={handleCheck} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl font-bold text-gold-opaque shadow-lg bg-gold-accent/20 hover:bg-gold-accent/40">
+            <span className="material-symbols-outlined text-2xl md:text-4xl landscape:text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 700" }}>check</span>
           </button>
-          <button onClick={() => handlePress('÷')} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-10 landscape:w-10 landscape:md:h-14 landscape:md:w-14 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-lg font-bold text-white shadow-lg bg-white/40">
+          <button onClick={() => handlePress('÷')} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-base font-bold text-white shadow-lg bg-white/40">
             ÷
           </button>
         </div>
@@ -104,10 +146,11 @@ function Calculator({ isOpen, initialValue, onClose, onSave }: any) {
   );
 }
 
-function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMode, cycle, setCycle }: any) {
+function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMode, cycle, setCycle, currentTheme, setTheme }: any) {
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
   const [avatarMenuId, setAvatarMenuId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   
   // Store the initial sorted order of player IDs when the component mounts
   const sortedPlayerIds = useRef([...players].sort((a, b) => b.score - a.score).map((p: Player) => p.id));
@@ -266,7 +309,7 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
 
         <footer 
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
-          className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}
+          className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] landscape:p-1`}
         >
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <button onClick={onReset} className={`flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333] hover:text-white border border-[#444]' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-stone-200'} font-bold transition-all uppercase tracking-wider text-xs md:text-sm font-trajan shadow-sm`}>
@@ -285,7 +328,7 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
                 <span className="material-symbols-outlined text-sm md:text-base">chevron_right</span>
               </button>
             </div>
-            <button onClick={onBack} className="flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl bg-gradient-to-b from-gold-accent to-[#b7791f] text-white font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition-all uppercase tracking-wider text-xs md:text-sm font-trajan border border-[#dcb022]">
+            <button onClick={onBack} className="flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl bg-gradient-to-b from-gold-accent to-primary-dark text-black font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition-all uppercase tracking-wider text-xs md:text-sm font-trajan border border-primary-dark">
               <span className="material-symbols-outlined text-lg">swords</span>
               DUEL
             </button>
@@ -318,10 +361,50 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
                     <div className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`}></div>
                   </div>
                 </button>
+                <button 
+                  onClick={() => setIsThemeMenuOpen(true)}
+                  className={`flex items-center gap-3 w-full p-3 rounded-xl ${isDarkMode ? 'hover:bg-[#3a3a3a] text-gray-200' : 'hover:bg-stone-100 text-slate-800'} transition-colors text-left`}
+                >
+                  <span className="material-symbols-outlined text-gold-accent">palette</span>
+                  <span className="font-sans font-medium">Select Theme</span>
+                </button>
                 <button className={`flex items-center gap-3 w-full p-3 rounded-xl ${isDarkMode ? 'hover:bg-[#3a3a3a] text-gray-200' : 'hover:bg-stone-100 text-slate-800'} transition-colors text-left`}>
                   <span className="material-symbols-outlined text-gold-accent opacity-0">circle</span>
                   <span className="font-sans font-medium opacity-50 italic">Coming Soon</span>
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isThemeMenuOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className={`w-full max-w-sm rounded-2xl border-2 border-gold-accent ${isDarkMode ? 'bg-[#2a2a2a]' : 'bg-white'} shadow-2xl overflow-hidden flex flex-col`}>
+              <div className={`flex justify-between items-center p-4 border-b ${isDarkMode ? 'border-[#444444]' : 'border-stone-200'}`}>
+                <div className="flex items-center gap-2">
+                  <button onClick={() => setIsThemeMenuOpen(false)} className={`p-1 rounded-full ${isDarkMode ? 'hover:bg-[#3a3a3a] text-gray-400' : 'hover:bg-stone-100 text-stone-500'} transition-colors`}>
+                    <span className="material-symbols-outlined">arrow_back</span>
+                  </button>
+                  <h3 className={`font-trajan font-bold text-lg tracking-widest ${isDarkMode ? 'text-gray-200' : 'text-slate-900'}`}>Themes</h3>
+                </div>
+                <button onClick={() => { setIsThemeMenuOpen(false); setIsSettingsOpen(false); }} className={`p-1 rounded-full ${isDarkMode ? 'hover:bg-[#3a3a3a] text-gray-400' : 'hover:bg-stone-100 text-stone-500'} transition-colors`}>
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <div className="p-2 flex flex-col gap-1">
+                {THEMES.map((t) => (
+                  <button 
+                    key={t.name}
+                    onClick={() => setTheme(t)}
+                    className={`flex items-center justify-between w-full p-3 rounded-xl transition-colors ${currentTheme.name === t.name ? (isDarkMode ? 'bg-[#3a3a3a]' : 'bg-stone-100') : (isDarkMode ? 'hover:bg-[#333]' : 'hover:bg-stone-50')}`}
+                  >
+                    <span className={`font-sans font-medium ${isDarkMode ? 'text-gray-200' : 'text-slate-800'}`}>{t.name}</span>
+                    <div className="flex gap-2">
+                      <div className="w-6 h-6 rounded-full border border-black" style={{ backgroundColor: t.main }}></div>
+                      <div className="w-6 h-6 rounded-full border border-black" style={{ backgroundColor: t.accent }}></div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
@@ -352,7 +435,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
     ) : null;
 
     return (
-      <section className="flex-1 flex flex-col justify-center items-center py-1 px-1 md:px-2 gap-1 md:gap-2 w-full min-h-0 overflow-hidden">
+      <section className="flex-1 flex flex-col justify-center items-center py-1 px-1 md:px-2 gap-1 md:gap-2 w-full min-h-0 overflow-hidden landscape:py-0 landscape:gap-0.5">
         {section === 'top' && totalElement}
         
         <Droppable droppableId={section} direction="horizontal">
@@ -360,7 +443,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
             <div 
               ref={provided.innerRef}
               {...provided.droppableProps}
-              className="flex flex-row flex-nowrap justify-center items-center gap-1 md:gap-2 w-full px-1 md:px-2 min-h-0 flex-1 h-full"
+              className="flex flex-row flex-nowrap justify-center items-center gap-1 md:gap-2 w-full px-1 md:px-2 min-h-0 flex-1 h-full landscape:gap-0.5"
             >
               {cards.map((card, idx) => {
                 const DraggableComponent = Draggable as any;
@@ -369,12 +452,12 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
 
                 return (
                 <DraggableComponent key={card.id} draggableId={card.id} index={idx} isDragDisabled={isPlusCard || isResetting}>
-                  {(provided: any) => (
+                  {(provided: any, snapshot: any) => (
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      className="flex-1 min-w-0 flex items-center justify-center h-full @container"
+                      className={`flex-1 min-w-0 flex items-center justify-center h-full @container ${snapshot.isDragging ? 'dragging' : ''}`}
                       style={{
                         ...provided.draggableProps.style,
                         display: 'flex',
@@ -384,7 +467,11 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
                     >
                       <motion.div
                         className="w-full h-full flex items-center justify-center"
-                        animate={shouldAnimate ? {
+                        animate={snapshot.isDragging ? {
+                          scale: 1.1,
+                          rotate: 2,
+                          filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))"
+                        } : shouldAnimate ? {
                           scale: [1, 1.1, 0.9],
                           opacity: [1, 1, 0],
                           y: [0, -10, -40],
@@ -394,13 +481,13 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
                             "brightness(2) saturate(4) contrast(1.5) drop-shadow(0 0 15px #ff4500) blur(2px)",
                             "brightness(0) blur(10px)"
                           ]
-                        } : { scale: 1, opacity: 1, y: 0, filter: "none" }}
-                        transition={shouldAnimate ? { duration: 0.8, ease: "easeIn" } : { duration: 0.2 }}
+                        } : { scale: 1, opacity: 1, y: 0, filter: "none", rotate: 0 }}
+                        transition={shouldAnimate ? { duration: 0.8, ease: "easeIn" } : { type: "spring", stiffness: 400, damping: 30 }}
                       >
                         {!isPlusCard ? (
                           <div 
                             onClick={() => !isResetting && onOpenCalc(section, idx, String(card.value))}
-                            className="relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-[#6d1818] bg-cover overflow-hidden shadow-lg card-shadow cursor-pointer hover:scale-105 transition-transform flex items-center justify-center"
+                            className="relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-lg card-shadow cursor-pointer hover:scale-105 transition-transform flex items-center justify-center"
                           >
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
                             <span className="relative z-10 font-bold gold-metallic-text font-trajan leading-none" style={{ fontSize: 'min(40cqw, 8cqh)' }}>{card.value}</span>
@@ -408,7 +495,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
                         ) : (
                           <button 
                             onClick={() => !isResetting && onOpenCalc(section, idx, '')}
-                            className="group relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-[#6d1818] bg-cover overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 card-shadow flex items-center justify-center disabled:opacity-50"
+                            className="group relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 card-shadow flex items-center justify-center disabled:opacity-50"
                             disabled={isResetting}
                           >
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
@@ -443,7 +530,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
       <div className={`relative z-10 w-full max-w-full md:max-w-4xl lg:max-w-6xl xl:max-w-7xl h-full flex flex-col shadow-2xl ${isDarkMode ? 'bg-[#2a2a2a]/90' : 'bg-white/80'} backdrop-blur-sm border-x border-gold-accent transition-colors duration-300`}>
         <header 
           style={{ paddingTop: 'env(safe-area-inset-top)' }}
-          className={`flex items-center justify-center px-2 py-1 md:px-4 md:py-2 border-b-2 border-gold-accent ${isDarkMode ? 'bg-[#2a2a2a]/80' : 'bg-white/70'} backdrop-blur-md shrink-0 transition-colors duration-300`}
+          className={`flex items-center justify-center px-2 py-1 md:px-4 md:py-2 border-b-2 border-gold-accent ${isDarkMode ? 'bg-[#2a2a2a]/80' : 'bg-white/70'} backdrop-blur-md shrink-0 transition-colors duration-300 landscape:hidden`}
         >
           <h1 className={`text-xs md:text-sm lg:text-base font-bold ${isDarkMode ? 'text-gray-200' : 'text-slate-900'} uppercase tracking-[0.1em] font-trajan text-center leading-tight max-w-[90%] mx-auto transition-colors duration-300`}>
             ULTIMATE CARD GAME<br/>CALCULATOR COMPANION
@@ -451,11 +538,11 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
         </header>
 
         <DragDropContext onDragEnd={onDragEnd}>
-          <main className="flex-1 flex flex-col relative overflow-hidden pb-32 md:pb-40 pt-2 md:pt-3">
+          <main className="flex-1 flex flex-col relative overflow-hidden pb-32 md:pb-40 pt-2 md:pt-3 landscape:pb-16 landscape:pt-1">
             {renderSection(topCards, 'top')}
             
-            <div className="relative w-full shrink-0 my-1">
-              <div className="h-1 md:h-2 w-full bg-gold-accent shadow-[0_0_10px_rgba(212,175,55,0.6)] border-y border-[#aa771c]"></div>
+            <div className="relative w-full shrink-0 my-1 landscape:my-0.5">
+              <div className="h-1 md:h-2 w-full bg-gold-accent shadow-[0_0_10px_var(--theme-accent)] border-y border-primary-dark landscape:h-0.5"></div>
             </div>
             
             {renderSection(bottomCards, 'bottom')}
@@ -464,7 +551,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
 
         <footer 
           style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
-          className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}
+          className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] landscape:p-1`}
         >
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <button onClick={onReset} className={`flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333] hover:text-white border border-[#444]' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-stone-200'} font-bold transition-all uppercase tracking-wider text-xs md:text-sm font-trajan shadow-sm`}>
@@ -485,7 +572,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
               </button>
             </div>
 
-            <button onClick={onOpenPoints} className="flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl bg-gradient-to-b from-gold-accent to-[#b7791f] text-white font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition-all uppercase tracking-wider text-xs md:text-sm font-trajan border border-[#dcb022]">
+            <button onClick={onOpenPoints} className="flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl bg-gradient-to-b from-gold-accent to-primary-dark text-black font-bold shadow-lg hover:shadow-xl hover:brightness-110 transition-all uppercase tracking-wider text-xs md:text-sm font-trajan border border-primary-dark">
               <span className="material-symbols-outlined text-lg">leaderboard</span>
               POINTS
             </button>
@@ -517,12 +604,12 @@ function SplashScreen({ onComplete, isDarkMode }: { onComplete: () => void; isDa
       style={{ backgroundImage: `url('${bgImage}')` }}
     >
       <div className="text-center px-4 pointer-events-none">
-        <h1 className="font-trajan text-4xl md:text-7xl font-black text-gold-accent leading-tight drop-shadow-[0_0_30px_rgba(212,175,55,0.5)] tracking-wider">
+        <h1 className="font-trajan text-4xl md:text-7xl font-black text-gold-accent leading-tight drop-shadow-[0_0_30px_var(--theme-accent)] tracking-wider">
           <span className="block landscape:inline">ULTIMATE </span>
           <span className="block landscape:inline">CARD GAME</span>
         </h1>
-        <div className="w-32 md:w-64 h-px bg-gold-accent mx-auto my-4 md:my-8 opacity-60 shadow-[0_0_10px_rgba(212,175,55,0.4)]"></div>
-        <h1 className="font-trajan text-4xl md:text-7xl font-black text-gold-accent leading-tight drop-shadow-[0_0_30px_rgba(212,175,55,0.5)] tracking-wider">
+        <div className="w-32 md:w-64 h-px bg-gold-accent mx-auto my-4 md:my-8 opacity-60 shadow-[0_0_10px_var(--theme-accent)]"></div>
+        <h1 className="font-trajan text-4xl md:text-7xl font-black text-gold-accent leading-tight drop-shadow-[0_0_30px_var(--theme-accent)] tracking-wider">
           CALCULATOR COMPANION
         </h1>
       </div>
@@ -536,6 +623,14 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(() => 
     window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
   );
+  const [currentTheme, setCurrentTheme] = useState(THEMES[0]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--theme-main', currentTheme.main);
+    document.documentElement.style.setProperty('--theme-accent', currentTheme.accent);
+  }, [currentTheme]);
+
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
   const [round, setRound] = useState(1);
   const [cycle, setCycle] = useState(1);
   const [isResetting, setIsResetting] = useState(false);
@@ -666,9 +761,11 @@ export default function App() {
               onBack={() => setCurrentPage('landing')} 
               onReset={handleResetPoints}
               isDarkMode={isDarkMode}
-              toggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+              toggleDarkMode={toggleDarkMode}
               cycle={cycle}
               setCycle={setCycle}
+              currentTheme={currentTheme}
+              setTheme={setCurrentTheme}
             />
           )}
           
