@@ -159,15 +159,18 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
   };
 
   return (
-    <div className={`min-h-screen font-trajan flex flex-col items-center justify-center relative overflow-x-hidden ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-stone-100'}`}>
+    <div className={`min-h-[100dvh] font-trajan flex flex-col items-center justify-center relative overflow-x-hidden ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-stone-100'}`}>
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center opacity-100 pointer-events-none transition-all duration-500"
         style={{ backgroundImage: `url('${isDarkMode ? '/BlackMarbleStone.png' : '/WhiteMarbleStone.png'}')` }}
       ></div>
       <div className={`fixed inset-0 z-0 ${isDarkMode ? 'bg-black/20' : 'bg-white/10'} pointer-events-none mix-blend-overlay transition-colors duration-300`}></div>
       
-      <div className={`relative z-10 w-full max-w-md md:max-w-2xl lg:max-w-4xl h-screen flex flex-col shadow-2xl ${isDarkMode ? 'bg-[#2a2a2a]/90' : 'bg-white/80'} backdrop-blur-sm border-x border-gold-accent transition-colors duration-300`}>
-        <header className={`flex items-center justify-between whitespace-nowrap border-b border-solid border-gold-accent px-4 py-3 md:px-6 md:py-4 ${isDarkMode ? 'bg-[#2a2a2a]/80' : 'bg-white/70'} backdrop-blur-sm shrink-0 transition-colors duration-300`}>
+      <div className={`relative z-10 w-full max-w-md md:max-w-2xl lg:max-w-4xl h-[100dvh] flex flex-col shadow-2xl ${isDarkMode ? 'bg-[#2a2a2a]/90' : 'bg-white/80'} backdrop-blur-sm border-x border-gold-accent transition-colors duration-300`}>
+        <header 
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          className={`flex items-center justify-between whitespace-nowrap border-b border-solid border-gold-accent px-4 py-3 md:px-6 md:py-4 ${isDarkMode ? 'bg-[#2a2a2a]/80' : 'bg-white/70'} backdrop-blur-sm shrink-0 transition-colors duration-300`}
+        >
           <div className="flex items-center gap-3">
             <h2 className={`text-base md:text-lg font-bold leading-tight font-trajan tracking-widest ${isDarkMode ? 'text-gray-200' : 'text-slate-900'} transition-colors duration-300`}>Ultimate Card Game</h2>
           </div>
@@ -179,7 +182,7 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
           </button>
         </header>
 
-        <main className="flex-1 flex flex-col p-2 md:p-4 gap-2 overflow-y-auto pb-24">
+        <main className="flex-1 flex flex-col p-2 md:p-4 gap-2 overflow-y-auto pb-32">
           <div className="text-center pt-2 pb-2 shrink-0">
             <h1 className={`font-trajan text-2xl md:text-3xl font-bold tracking-widest inline-block border-b-4 border-primary pb-1 ${isDarkMode ? 'text-gray-200' : 'text-slate-900'} transition-colors duration-300`}>
               POINTS
@@ -261,7 +264,10 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
           </div>
         </main>
 
-        <footer className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}>
+        <footer 
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
+          className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}
+        >
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <button onClick={onReset} className={`flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333] hover:text-white border border-[#444]' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-stone-200'} font-bold transition-all uppercase tracking-wider text-xs md:text-sm font-trajan shadow-sm`}>
               <span className="material-symbols-outlined text-lg">restart_alt</span>
@@ -364,44 +370,54 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
                 return (
                 <DraggableComponent key={card.id} draggableId={card.id} index={idx} isDragDisabled={isPlusCard || isResetting}>
                   {(provided: any) => (
-                    <motion.div
+                    <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
-                      animate={shouldAnimate ? {
-                        scale: [1, 1.1, 0.9],
-                        opacity: [1, 1, 0],
-                        y: [0, -10, -40],
-                        rotate: [0, 2, -2, 0],
-                        filter: [
-                          "brightness(1) saturate(1) blur(0px)",
-                          "brightness(2) saturate(4) contrast(1.5) drop-shadow(0 0 15px #ff4500) blur(2px)",
-                          "brightness(0) blur(10px)"
-                        ]
-                      } : { scale: 1, opacity: 1, y: 0, filter: "none" }}
-                      transition={shouldAnimate ? { duration: 0.8, ease: "easeIn" } : { duration: 0.2 }}
                       className="flex-1 min-w-0 flex items-center justify-center h-full @container"
+                      style={{
+                        ...provided.draggableProps.style,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
                     >
-                      {!isPlusCard ? (
-                        <div 
-                          onClick={() => !isResetting && onOpenCalc(section, idx, String(card.value))}
-                          className="relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-[#6d1818] bg-cover overflow-hidden shadow-lg card-shadow cursor-pointer hover:scale-105 transition-transform flex items-center justify-center"
-                        >
-                          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
-                          <span className="relative z-10 font-bold gold-metallic-text font-trajan leading-none" style={{ fontSize: 'min(40cqw, 8cqh)' }}>{card.value}</span>
-                        </div>
-                      ) : (
-                        <button 
-                          onClick={() => !isResetting && onOpenCalc(section, idx, '')}
-                          className="group relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-[#6d1818] bg-cover overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 card-shadow flex items-center justify-center disabled:opacity-50"
-                          disabled={isResetting}
-                        >
-                          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
-                          <span className="relative z-10 material-symbols-outlined gold-metallic-text drop-shadow-lg" style={{ fontVariationSettings: "'FILL' 1", fontSize: 'min(40cqw, 8cqh)' }}>add_circle</span>
-                          <div className="absolute inset-0 border-2 md:border-4 border-gold-accent/20 rounded-lg pointer-events-none"></div>
-                        </button>
-                      )}
-                    </motion.div>
+                      <motion.div
+                        className="w-full h-full flex items-center justify-center"
+                        animate={shouldAnimate ? {
+                          scale: [1, 1.1, 0.9],
+                          opacity: [1, 1, 0],
+                          y: [0, -10, -40],
+                          rotate: [0, 2, -2, 0],
+                          filter: [
+                            "brightness(1) saturate(1) blur(0px)",
+                            "brightness(2) saturate(4) contrast(1.5) drop-shadow(0 0 15px #ff4500) blur(2px)",
+                            "brightness(0) blur(10px)"
+                          ]
+                        } : { scale: 1, opacity: 1, y: 0, filter: "none" }}
+                        transition={shouldAnimate ? { duration: 0.8, ease: "easeIn" } : { duration: 0.2 }}
+                      >
+                        {!isPlusCard ? (
+                          <div 
+                            onClick={() => !isResetting && onOpenCalc(section, idx, String(card.value))}
+                            className="relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-[#6d1818] bg-cover overflow-hidden shadow-lg card-shadow cursor-pointer hover:scale-105 transition-transform flex items-center justify-center"
+                          >
+                            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
+                            <span className="relative z-10 font-bold gold-metallic-text font-trajan leading-none" style={{ fontSize: 'min(40cqw, 8cqh)' }}>{card.value}</span>
+                          </div>
+                        ) : (
+                          <button 
+                            onClick={() => !isResetting && onOpenCalc(section, idx, '')}
+                            className="group relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-[#6d1818] bg-cover overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 card-shadow flex items-center justify-center disabled:opacity-50"
+                            disabled={isResetting}
+                          >
+                            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
+                            <span className="relative z-10 material-symbols-outlined gold-metallic-text drop-shadow-lg" style={{ fontVariationSettings: "'FILL' 1", fontSize: 'min(40cqw, 8cqh)' }}>add_circle</span>
+                            <div className="absolute inset-0 border-2 md:border-4 border-gold-accent/20 rounded-lg pointer-events-none"></div>
+                          </button>
+                        )}
+                      </motion.div>
+                    </div>
                   )}
                 </DraggableComponent>
                 );
@@ -417,7 +433,7 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
   };
 
   return (
-    <div className={`h-screen font-trajan flex flex-col items-center justify-center relative overflow-hidden ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-stone-100'}`}>
+    <div className={`h-[100dvh] font-trajan flex flex-col items-center justify-center relative overflow-hidden ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-stone-100'}`}>
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center opacity-100 pointer-events-none transition-all duration-500"
         style={{ backgroundImage: `url('${isDarkMode ? '/BlackMarbleStone.png' : '/WhiteMarbleStone.png'}')` }}
@@ -425,14 +441,17 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
       <div className={`fixed inset-0 z-0 ${isDarkMode ? 'bg-black/20' : 'bg-white/10'} pointer-events-none mix-blend-overlay transition-colors duration-300`}></div>
       
       <div className={`relative z-10 w-full max-w-full md:max-w-4xl lg:max-w-6xl xl:max-w-7xl h-full flex flex-col shadow-2xl ${isDarkMode ? 'bg-[#2a2a2a]/90' : 'bg-white/80'} backdrop-blur-sm border-x border-gold-accent transition-colors duration-300`}>
-        <header className={`flex items-center justify-center px-2 py-1 md:px-4 md:py-2 border-b-2 border-gold-accent ${isDarkMode ? 'bg-[#2a2a2a]/80' : 'bg-white/70'} backdrop-blur-md shrink-0 transition-colors duration-300`}>
+        <header 
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          className={`flex items-center justify-center px-2 py-1 md:px-4 md:py-2 border-b-2 border-gold-accent ${isDarkMode ? 'bg-[#2a2a2a]/80' : 'bg-white/70'} backdrop-blur-md shrink-0 transition-colors duration-300`}
+        >
           <h1 className={`text-xs md:text-sm lg:text-base font-bold ${isDarkMode ? 'text-gray-200' : 'text-slate-900'} uppercase tracking-[0.1em] font-trajan text-center leading-tight max-w-[90%] mx-auto transition-colors duration-300`}>
             ULTIMATE CARD GAME<br/>CALCULATOR COMPANION
           </h1>
         </header>
 
         <DragDropContext onDragEnd={onDragEnd}>
-          <main className="flex-1 flex flex-col relative overflow-hidden pb-[64px] md:pb-[80px] pt-2 md:pt-3">
+          <main className="flex-1 flex flex-col relative overflow-hidden pb-32 md:pb-40 pt-2 md:pt-3">
             {renderSection(topCards, 'top')}
             
             <div className="relative w-full shrink-0 my-1">
@@ -443,7 +462,10 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
           </main>
         </DragDropContext>
 
-        <footer className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}>
+        <footer 
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
+          className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)]`}
+        >
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <button onClick={onReset} className={`flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333] hover:text-white border border-[#444]' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-stone-200'} font-bold transition-all uppercase tracking-wider text-xs md:text-sm font-trajan shadow-sm`}>
               <span className="material-symbols-outlined text-lg">restart_alt</span>
