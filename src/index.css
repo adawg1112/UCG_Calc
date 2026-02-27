@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #d4af37;
+  --color-primary-dark: #dcb022;
+  --color-background-light: #f8f8f5;
+  --color-background-dark: #221e10;
+  --color-marble-red: #6d1818;
+  --color-gold-accent: #d4af37;
+  --color-gold-vibrant: #ffe14d;
+  --color-gold-opaque: #FFD700;
+  --color-deep-red: #b91c1c;
+  --color-marble-white: #fcfbf8;
+  --color-marble-vein: #e8e2ce;
+  --color-card-red: #8a2c2c;
+
+  --font-trajan: "Cinzel", serif;
+  --font-display: "Noto Serif", serif;
+  --font-sans: "Noto Sans", sans-serif;
+}
+
+@layer utilities {
+  .card-shadow {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+  }
+  .gold-num-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 20px rgba(255, 215, 0, 0.4);
+  }
+  .gold-metallic-text {
+    background: linear-gradient(180deg, #fffbe6 0%, #ffeaa7 20%, #ffd700 40%, #ffbf00 60%, #e1b12c 80%, #b7791f 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 2px 1px rgba(0,0,0,0.5));
+  }
+  .red-marble-text {
+    color: #6d1818;
+    text-shadow: 0px 1px 0px rgba(255,255,255,0.2), 0px -1px 0px rgba(0,0,0,0.3);
+  }
+  .gold-bg-metallic {
+    background: linear-gradient(135deg, #e6c86e 0%, #fcf6ba 40%, #d4af37 60%, #aa771c 100%);
+    box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  .bg-marble {
+    background-color: #fcfbf8;
+    background-image: 
+      radial-gradient(at 10% 10%, rgba(232, 226, 206, 0.3) 0px, transparent 50%),
+      radial-gradient(at 90% 90%, rgba(232, 226, 206, 0.3) 0px, transparent 50%);
+  }
+  .calculator-btn {
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    transition: all 0.2s ease;
+  }
+  .calculator-btn:active {
+    background-color: rgba(255, 255, 255, 0.5);
+    transform: scale(0.95);
+  }
+}
