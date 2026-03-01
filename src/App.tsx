@@ -30,7 +30,7 @@ const THEMES = [
   { name: 'Chrono', main: '#6A0DAD', accent: '#FFDA03' },
 ];
 
-function Calculator({ isOpen, initialValue, onClose, onSave }: any) {
+function Calculator({ isOpen, initialValue, onClose, onSave, isRotated }: any) {
   const [input, setInput] = useState(initialValue || '0');
   const inputRef = useRef(input);
 
@@ -105,41 +105,59 @@ function Calculator({ isOpen, initialValue, onClose, onSave }: any) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/60 backdrop-blur-sm p-4 font-trajan" onClick={() => onClose()}>
-      <div className="flex flex-col landscape:flex-row items-center justify-center gap-6 md:gap-10 animate-in fade-in zoom-in duration-300" onClick={(e) => e.stopPropagation()}>
-        
-        <div className="relative aspect-[60/90] w-40 md:w-56 landscape:w-28 landscape:md:w-40 rounded-xl border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-[0_0_50px_var(--theme-accent)] card-shadow shrink-0">
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
-          <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/40"></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-            <span className="text-5xl md:text-8xl landscape:text-4xl landscape:md:text-6xl font-bold gold-metallic-text font-trajan leading-none drop-shadow-2xl text-center px-2 break-all">{input}</span>
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none"></div>
-        </div>
-
-        <div className="grid grid-cols-4 gap-2 md:gap-4 p-2 md:p-4 shrink-0 landscape:gap-1 landscape:p-1">
-          {['1','2','3','+','4','5','6','-','7','8','9','×'].map(btn => (
-            <button 
-              key={btn}
-              onClick={() => handlePress(btn)}
-              className={`calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-base font-bold text-white shadow-lg ${['+','-','×'].includes(btn) ? 'bg-white/40' : ''}`}
-            >
-              {btn}
-            </button>
-          ))}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/80 backdrop-blur-md p-4 font-sans" onClick={() => onClose()}>
+      <div className={`transition-transform duration-300 ${isRotated ? 'rotate-180' : ''}`} onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-col landscape:flex-row items-center justify-center gap-6 md:gap-10 animate-in fade-in zoom-in duration-300">
           
-          <button onClick={handleClear} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-sm md:text-xl landscape:text-[10px] font-bold text-white/80 shadow-lg bg-red-900/40 hover:bg-red-900/60 uppercase tracking-widest">
-            C
-          </button>
-          <button onClick={() => handlePress('0')} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-base font-bold text-white shadow-lg">
-            0
-          </button>
-          <button onClick={handleCheck} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl font-bold text-gold-opaque shadow-lg bg-gold-accent/20 hover:bg-gold-accent/40">
-            <span className="material-symbols-outlined text-2xl md:text-4xl landscape:text-lg" style={{ fontVariationSettings: "'FILL' 1, 'wght' 700" }}>check</span>
-          </button>
-          <button onClick={() => handlePress('÷')} className="calculator-btn h-12 w-12 md:h-20 md:w-20 landscape:h-8 landscape:w-8 landscape:md:h-12 landscape:md:w-12 rounded-[2rem] flex items-center justify-center text-xl md:text-3xl landscape:text-base font-bold text-white shadow-lg bg-white/40">
-            ÷
-          </button>
+          <div className="relative aspect-[60/90] w-40 md:w-56 landscape:w-28 landscape:md:w-40 rounded-xl border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-[0_0_50px_var(--theme-accent)] card-shadow shrink-0">
+            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/40"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
+              <span className="text-5xl md:text-8xl landscape:text-4xl landscape:md:text-6xl font-bold gold-metallic-text font-sans leading-none drop-shadow-2xl text-center px-2 break-all">{input}</span>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent pointer-events-none"></div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-3 md:gap-4 p-4 md:p-6 shrink-0 bg-stone-800/90 rounded-3xl shadow-2xl border border-stone-700/50">
+            {['7','8','9','÷','4','5','6','×','1','2','3','-'].map(btn => (
+              <button 
+                key={btn}
+                onClick={() => handlePress(btn)}
+                className={`aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium transition-all active:scale-95 shadow-md
+                  ${['÷','×','-'].includes(btn) 
+                    ? 'bg-stone-700 text-gold-opaque hover:bg-stone-600' 
+                    : 'bg-stone-800 text-white hover:bg-stone-700 border border-stone-700/50'}`}
+              >
+                {btn}
+              </button>
+            ))}
+            
+            <button 
+              onClick={handleClear} 
+              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-2xl md:text-3xl landscape:text-xl font-bold text-red-400 bg-stone-800 hover:bg-stone-700 border border-stone-700/50 transition-all active:scale-95 shadow-md uppercase tracking-widest"
+            >
+              C
+            </button>
+            <button 
+              onClick={() => handlePress('0')} 
+              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium text-white bg-stone-800 hover:bg-stone-700 border border-stone-700/50 transition-all active:scale-95 shadow-md"
+            >
+              0
+            </button>
+            <button 
+              onClick={() => handlePress('+')} 
+              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium text-gold-opaque bg-stone-700 hover:bg-stone-600 transition-all active:scale-95 shadow-md"
+            >
+              +
+            </button>
+            <button 
+              onClick={handleCheck} 
+              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-4xl md:text-5xl landscape:text-3xl font-bold text-black hover:brightness-110 transition-all active:scale-95 shadow-lg"
+              style={{ backgroundColor: 'var(--theme-accent)' }}
+            >
+              =
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -152,6 +170,10 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
   
+  const [isResetting, setIsResetting] = useState(false);
+  const [animatingPlayerId, setAnimatingPlayerId] = useState<string | null>(null);
+  const [poppedPlayerIds, setPoppedPlayerIds] = useState<Set<string>>(new Set());
+
   // Store the initial sorted order of player IDs when the component mounts
   const sortedPlayerIds = useRef([...players].sort((a, b) => b.score - a.score).map((p: Player) => p.id));
 
@@ -201,6 +223,49 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
     }]);
   };
 
+  const handleResetClick = async () => {
+    if (players.length === 0) {
+      onReset();
+      return;
+    }
+    
+    setIsResetting(true);
+    
+    const sortedPlayers = [...players].sort((a, b) => a.score - b.score);
+    const highestScorePlayerId = sortedPlayers[sortedPlayers.length - 1].id;
+    
+    for (let i = 0; i < sortedPlayers.length; i++) {
+      const player = sortedPlayers[i];
+      const isFirstPlace = i === sortedPlayers.length - 1;
+      
+      setAnimatingPlayerId(player.id);
+      
+      if (!isFirstPlace) {
+        // Swell up
+        await new Promise(r => setTimeout(r, 300));
+        // Pop
+        setPoppedPlayerIds(prev => new Set(prev).add(player.id));
+        await new Promise(r => setTimeout(r, 100));
+      } else {
+        // First place
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+        audio.play().catch(e => console.log('Audio play failed', e));
+        
+        // Swell up larger and stay active
+        await new Promise(r => setTimeout(r, 2000));
+        
+        // Pop
+        setPoppedPlayerIds(prev => new Set(prev).add(player.id));
+        await new Promise(r => setTimeout(r, 100));
+      }
+    }
+    
+    onReset();
+    setIsResetting(false);
+    setAnimatingPlayerId(null);
+    setPoppedPlayerIds(new Set());
+  };
+
   return (
     <div className={`min-h-[100dvh] font-trajan flex flex-col items-center justify-center relative overflow-x-hidden ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-stone-100'}`}>
       <div 
@@ -233,8 +298,30 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
           </div>
 
           <div className="flex flex-col gap-2">
-            {displayPlayers.map((player: Player) => (
-              <div key={player.id} className={`${isDarkMode ? 'bg-[#333333] border-[#444444]' : 'bg-white border-stone-200'} rounded-xl border shadow-sm p-2 md:p-3 flex items-center justify-between relative group transition-colors duration-300`}>
+            {displayPlayers.map((player: Player) => {
+              const isAnimating = animatingPlayerId === player.id;
+              const isPopped = poppedPlayerIds.has(player.id);
+              const isFirstPlace = [...players].sort((a, b) => a.score - b.score).pop()?.id === player.id;
+
+              return (
+              <motion.div 
+                key={player.id} 
+                animate={
+                  isPopped ? { scale: 0, opacity: 0 } :
+                  isAnimating ? { 
+                    scale: isFirstPlace ? 1.15 : 1.05,
+                    boxShadow: isFirstPlace ? "0 0 30px var(--theme-accent)" : "0 0 15px rgba(255,255,255,0.5)",
+                    zIndex: 50
+                  } : { scale: 1, opacity: 1 }
+                }
+                transition={{ 
+                  duration: isPopped ? 0.1 : 0.3,
+                  type: isPopped ? "tween" : "spring",
+                  stiffness: 300,
+                  damping: 20
+                }}
+                className={`${isDarkMode ? 'bg-[#333333] border-[#444444]' : 'bg-white border-stone-200'} rounded-xl border shadow-sm p-2 md:p-3 flex items-center justify-between relative group transition-colors duration-300 origin-center`}
+              >
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold-accent rounded-l-xl"></div>
                 
                 <div className="flex items-center gap-3 flex-1 pl-2">
@@ -289,12 +376,12 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10 pointer-events-none"></div>
                     <span className="text-lg md:text-2xl font-bold font-trajan z-10">{player.score}</span>
                   </div>
-                  <button onClick={() => updateScore(player.id, 1)} className="text-gold-accent hover:text-primary transition-colors p-1">
+                  <button onClick={() => updateScore(player.id, 1)} className="text-gold-accent hover:text-primary transition-colors p-1" disabled={isResetting}>
                     <span className="material-symbols-outlined text-lg md:text-xl">add</span>
                   </button>
                 </div>
-              </div>
-            ))}
+              </motion.div>
+            )})}
 
             {players.length < 10 && (
               <button onClick={addPlayer} className={`w-full mt-1 group relative overflow-hidden rounded-xl border-2 border-primary/40 ${isDarkMode ? 'bg-[#333333]' : 'bg-white'} p-2 md:p-3 flex items-center justify-center gap-2 transition-all hover:bg-primary/5 active:scale-[0.98]`}>
@@ -312,7 +399,7 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
           className={`absolute bottom-0 left-0 right-0 z-20 ${isDarkMode ? 'bg-[#222222]/90 border-[#333]' : 'bg-white/90 border-stone-200'} backdrop-blur-xl border-t p-2 md:p-3 shrink-0 transition-colors duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] landscape:p-1`}
         >
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
-            <button onClick={onReset} className={`flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333] hover:text-white border border-[#444]' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-stone-200'} font-bold transition-all uppercase tracking-wider text-xs md:text-sm font-trajan shadow-sm`}>
+            <button onClick={handleResetClick} disabled={isResetting} className={`flex-1 flex items-center justify-center gap-2 h-10 md:h-12 rounded-2xl ${isDarkMode ? 'bg-[#2a2a2a] text-gray-300 hover:bg-[#333] hover:text-white border border-[#444]' : 'bg-stone-50 text-stone-600 hover:bg-stone-100 hover:text-stone-900 border border-stone-200'} font-bold transition-all uppercase tracking-wider text-xs md:text-sm font-trajan shadow-sm disabled:opacity-50`}>
               <span className="material-symbols-outlined text-lg">restart_alt</span>
               Reset
             </button>
@@ -421,12 +508,14 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
     
     const totalElement = hasEditedCards ? (
       <motion.div 
+        initial={{ rotate: section === 'top' ? 180 : 0, opacity: 0, scale: 0.8 }}
         animate={isResetting ? { 
           opacity: 0, 
           scale: 0.8, 
           filter: "brightness(2) saturate(2) blur(10px)",
-          y: -20
-        } : { opacity: 1, scale: 1 }}
+          y: section === 'top' ? 20 : -20,
+          rotate: section === 'top' ? 180 : 0
+        } : { opacity: 1, scale: 1, rotate: section === 'top' ? 180 : 0, y: 0, filter: "none" }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-[120px] md:max-w-[160px] relative h-8 md:h-10 rounded-lg md:rounded-xl overflow-hidden border-2 border-gold-accent card-shadow gold-bg-metallic flex items-center justify-center shrink-0 z-50"
       >
@@ -465,23 +554,24 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
                         justifyContent: 'center'
                       }}
                     >
-                      <motion.div
+                        <motion.div
                         className="w-full h-full flex items-center justify-center"
+                        initial={false}
                         animate={snapshot.isDragging ? {
                           scale: 1.1,
-                          rotate: 2,
+                          rotate: section === 'top' ? 182 : 2,
                           filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))"
                         } : shouldAnimate ? {
                           scale: [1, 1.1, 0.9],
                           opacity: [1, 1, 0],
-                          y: [0, -10, -40],
-                          rotate: [0, 2, -2, 0],
+                          y: section === 'top' ? [0, 10, 40] : [0, -10, -40],
+                          rotate: section === 'top' ? [180, 182, 178, 180] : [0, 2, -2, 0],
                           filter: [
                             "brightness(1) saturate(1) blur(0px)",
                             "brightness(2) saturate(4) contrast(1.5) drop-shadow(0 0 15px #ff4500) blur(2px)",
                             "brightness(0) blur(10px)"
                           ]
-                        } : { scale: 1, opacity: 1, y: 0, filter: "none", rotate: 0 }}
+                        } : { scale: 1, opacity: 1, y: 0, filter: "none", rotate: section === 'top' ? 180 : 0 }}
                         transition={shouldAnimate ? { duration: 0.8, ease: "easeIn" } : { type: "spring", stiffness: 400, damping: 30 }}
                       >
                         {!isPlusCard ? (
@@ -774,6 +864,7 @@ export default function App() {
             initialValue={calcState.initialValue} 
             onClose={() => setCalcState({ ...calcState, isOpen: false })} 
             onSave={handleSaveCalc} 
+            isRotated={calcState.targetSection === 'top'}
           />
         </motion.div>
       )}
