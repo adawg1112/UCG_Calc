@@ -244,20 +244,23 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
       const player = sortedPlayers[i];
       const isFirstPlace = i === sortedPlayers.length - 1;
       
+      if (isFirstPlace) {
+        // Play audio 0.1s before the animation starts
+        const audio = new Audio('/fanfare.mp3');
+        audio.play().catch(e => console.log('Audio play failed', e));
+        await new Promise(r => setTimeout(r, 100));
+      }
+      
       setAnimatingPlayerId(player.id);
       
       if (!isFirstPlace) {
         // Swell up
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 200));
         // Pop (don't await the pop to finish, start next player's swell immediately)
         setPoppedPlayerIds(prev => new Set(prev).add(player.id));
       } else {
-        // First place
-        const audio = new Audio('/fanfare.mp3');
-        audio.play().catch(e => console.log('Audio play failed', e));
-        
         // Swell up larger and stay active
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise(r => setTimeout(r, 2500));
         
         // Pop
         setPoppedPlayerIds(prev => new Set(prev).add(player.id));
