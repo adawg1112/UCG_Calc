@@ -231,8 +231,14 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
     
     setIsResetting(true);
     
-    const sortedPlayers = [...players].sort((a, b) => a.score - b.score);
-    const highestScorePlayerId = sortedPlayers[sortedPlayers.length - 1].id;
+    const sortedPlayers = [...players].sort((a, b) => {
+      if (a.score !== b.score) {
+        return a.score - b.score;
+      }
+      const indexA = displayPlayers.findIndex(p => p.id === a.id);
+      const indexB = displayPlayers.findIndex(p => p.id === b.id);
+      return indexB - indexA;
+    });
     
     for (let i = 0; i < sortedPlayers.length; i++) {
       const player = sortedPlayers[i];
@@ -243,12 +249,11 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
       if (!isFirstPlace) {
         // Swell up
         await new Promise(r => setTimeout(r, 300));
-        // Pop
+        // Pop (don't await the pop to finish, start next player's swell immediately)
         setPoppedPlayerIds(prev => new Set(prev).add(player.id));
-        await new Promise(r => setTimeout(r, 100));
       } else {
         // First place
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+        const audio = new Audio('/fanfare.mp3');
         audio.play().catch(e => console.log('Audio play failed', e));
         
         // Swell up larger and stay active
