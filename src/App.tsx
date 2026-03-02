@@ -30,85 +30,62 @@ const THEMES = [
   { name: 'Chrono', main: '#6A0DAD', accent: '#FFDA03' },
 ];
 
-function Calculator({ isOpen, initialValue, onClose, onSave, isRotated }: any) {
+type CalcProps = {
+  isOpen: boolean;
+  initialValue: string;
+  onClose: () => void;
+  onSave: (val: number) => void;
+  isRotated: boolean;
+};
+
+function Calculator({ isOpen, initialValue, onClose, onSave, isRotated }: CalcProps) {
   const [input, setInput] = useState(initialValue || '0');
   const inputRef = useRef(input);
 
-  useEffect(() => {
-    inputRef.current = input;
-  }, [input]);
+  useEffect(() => { inputRef.current = input; }, [input]);
 
   useEffect(() => {
-    if (isOpen) {
-      setInput(initialValue || '0');
-      
-      const handleKeyDown = (e: KeyboardEvent) => {
-        const key = e.key;
-        if (key >= '0' && key <= '9') {
-          handlePress(key);
-        } else if (key === '+') {
-          handlePress('+');
-        } else if (key === '-') {
-          handlePress('-');
-        } else if (key === '*' || key === 'x') {
-          handlePress('×');
-        } else if (key === '/') {
-          handlePress('÷');
-        } else if (key === 'Enter') {
-          handleCheck();
-        } else if (key === 'Escape') {
-          onClose();
-        } else if (key === 'Backspace') {
-          setInput(prev => prev.length > 1 ? prev.slice(0, -1) : '0');
-        } else if (key === 'c' || key === 'C') {
-          handleClear();
-        }
-      };
+    if (!isOpen) return;
+    setInput(initialValue || '0');
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const key = e.key;
+      if (/^[0-9]$/.test(key)) handlePress(key);
+      else if (['+', '-'].includes(key)) handlePress(key);
+      else if (key === '*' || key === 'x') handlePress('×');
+      else if (key === '/') handlePress('÷');
+      else if (key === 'Enter') handleCheck();
+      else if (key === 'Escape') onClose();
+      else if (key === 'Backspace') setInput(p => p.length > 1 ? p.slice(0, -1) : '0');
+      else if (key.toLowerCase() === 'c') handleClear();
+    };
 
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, initialValue]);
 
   if (!isOpen) return null;
 
-  const handlePress = (val: string) => {
-    setInput(prev => {
-      if (prev === '0' && !isNaN(Number(val))) {
-        return val;
-      } else {
-        return prev + val;
-      }
-    });
-  };
-
+  const handlePress = (val: string) => setInput(p => (p === '0' && !isNaN(Number(val))) ? val : p + val);
   const handleClear = () => setInput('0');
 
   const handleCheck = () => {
     const currentInput = inputRef.current;
+    if (!currentInput || currentInput === '0') return onSave(0);
     try {
-      if (!currentInput || currentInput === '0') {
-        onSave(0);
-        return;
-      }
-      const expression = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
-      // eslint-disable-next-line no-eval
-      let result = Math.floor(eval(expression)); 
-      if (isNaN(result) || !isFinite(result)) result = 0;
-      if (result < 0) result = 0;
-      onSave(result);
-    } catch (e) {
-      let fallback = parseInt(currentInput) || 0;
-      if (fallback < 0) fallback = 0;
-      onSave(fallback);
+      const expr = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+      // Safe evaluation using Function instead of eval
+      let result = Math.floor(new Function(`return ${expr}`)());
+      onSave(isNaN(result) || !isFinite(result) || result < 0 ? 0 : result);
+    } catch {
+      onSave(Math.max(0, parseInt(currentInput) || 0));
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/80 backdrop-blur-md p-4 font-sans" onClick={() => onClose()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/80 backdrop-blur-md p-4 font-sans" onClick={onClose}>
       <div className={`transition-transform duration-300 ${isRotated ? 'rotate-180' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="flex flex-col landscape:flex-row items-center justify-center gap-6 md:gap-10 animate-in fade-in zoom-in duration-300">
-          
           <div className="relative aspect-[60/90] w-40 md:w-56 landscape:w-28 landscape:md:w-40 rounded-xl border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-[0_0_50px_var(--theme-accent)] card-shadow shrink-0">
             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
             <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/40"></div>
@@ -121,42 +98,14 @@ function Calculator({ isOpen, initialValue, onClose, onSave, isRotated }: any) {
           <div className="grid grid-cols-4 gap-3 md:gap-4 p-4 md:p-6 shrink-0 bg-stone-800/90 rounded-3xl shadow-2xl border border-stone-700/50">
             {['7','8','9','÷','4','5','6','×','1','2','3','-'].map(btn => (
               <button 
-                key={btn}
-                onClick={() => handlePress(btn)}
-                className={`aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium transition-all active:scale-95 shadow-md
-                  ${['÷','×','-'].includes(btn) 
-                    ? 'bg-stone-700 text-gold-opaque hover:bg-stone-600' 
-                    : 'bg-stone-800 text-white hover:bg-stone-700 border border-stone-700/50'}`}
-              >
-                {btn}
-              </button>
+                key={btn} onClick={() => handlePress(btn)}
+                className={`aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium transition-all active:scale-95 shadow-md ${['÷','×','-'].includes(btn) ? 'bg-stone-700 text-gold-opaque hover:bg-stone-600' : 'bg-stone-800 text-white hover:bg-stone-700 border border-stone-700/50'}`}
+              >{btn}</button>
             ))}
-            
-            <button 
-              onClick={handleClear} 
-              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-2xl md:text-3xl landscape:text-xl font-bold text-red-400 bg-stone-800 hover:bg-stone-700 border border-stone-700/50 transition-all active:scale-95 shadow-md uppercase tracking-widest"
-            >
-              C
-            </button>
-            <button 
-              onClick={() => handlePress('0')} 
-              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium text-white bg-stone-800 hover:bg-stone-700 border border-stone-700/50 transition-all active:scale-95 shadow-md"
-            >
-              0
-            </button>
-            <button 
-              onClick={() => handlePress('+')} 
-              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium text-gold-opaque bg-stone-700 hover:bg-stone-600 transition-all active:scale-95 shadow-md"
-            >
-              +
-            </button>
-            <button 
-              onClick={handleCheck} 
-              className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-4xl md:text-5xl landscape:text-3xl font-bold text-black hover:brightness-110 transition-all active:scale-95 shadow-lg"
-              style={{ backgroundColor: 'var(--theme-accent)' }}
-            >
-              =
-            </button>
+            <button onClick={handleClear} className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-2xl md:text-3xl landscape:text-xl font-bold text-red-400 bg-stone-800 hover:bg-stone-700 border border-stone-700/50 transition-all active:scale-95 shadow-md uppercase tracking-widest">C</button>
+            <button onClick={() => handlePress('0')} className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium text-white bg-stone-800 hover:bg-stone-700 border border-stone-700/50 transition-all active:scale-95 shadow-md">0</button>
+            <button onClick={() => handlePress('+')} className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-3xl md:text-4xl landscape:text-2xl font-medium text-gold-opaque bg-stone-700 hover:bg-stone-600 transition-all active:scale-95 shadow-md">+</button>
+            <button onClick={handleCheck} className="aspect-square w-16 md:w-24 landscape:w-12 landscape:md:w-16 rounded-xl flex items-center justify-center text-4xl md:text-5xl landscape:text-3xl font-bold text-black hover:brightness-110 transition-all active:scale-95 shadow-lg" style={{ backgroundColor: 'var(--theme-accent)' }}>=</button>
           </div>
         </div>
       </div>
@@ -164,59 +113,65 @@ function Calculator({ isOpen, initialValue, onClose, onSave, isRotated }: any) {
   );
 }
 
-function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMode, cycle, setCycle, currentTheme, setTheme }: any) {
+type Theme = { name: string; main: string; accent: string; };
+
+type PointsProps = {
+  players: Player[];
+  setPlayers: (p: Player[]) => void;
+  onBack: () => void;
+  onReset: () => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
+  cycle: number;
+  setCycle: (c: number) => void;
+  currentTheme: Theme;
+  setTheme: (t: Theme) => void;
+};
+
+function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMode, cycle, setCycle, currentTheme, setTheme }: PointsProps) {
   const [editingNameId, setEditingNameId] = useState<string | null>(null);
   const [avatarMenuId, setAvatarMenuId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
-  
   const [isResetting, setIsResetting] = useState(false);
-  const [animatingPlayerId, setAnimatingPlayerId] = useState<string | null>(null);
+  const [animatingPlayerIds, setAnimatingPlayerIds] = useState<Set<string>>(new Set());
   const [poppedPlayerIds, setPoppedPlayerIds] = useState<Set<string>>(new Set());
 
-  // Store the initial sorted order of player IDs when the component mounts
-  const sortedPlayerIds = useRef([...players].sort((a, b) => b.score - a.score).map((p: Player) => p.id));
+  // Keep track of original insertion order for stable display
+  const orderRef = useRef<Record<string, number>>({});
+  
+  // Initialize order on mount to sort by score (highest first)
+  if (Object.keys(orderRef.current).length === 0 && players.length > 0) {
+    const sorted = [...players].sort((a, b) => b.score - a.score);
+    sorted.forEach((p, i) => {
+      orderRef.current[p.id] = i;
+    });
+  }
 
-  // Update ref with any new players so they don't sort in real time
-  players.forEach((p: Player) => {
-    if (!sortedPlayerIds.current.includes(p.id)) {
-      sortedPlayerIds.current.push(p.id);
+  // Ensure any newly added players get an order index immediately
+  players.forEach((p) => {
+    if (orderRef.current[p.id] === undefined) {
+      orderRef.current[p.id] = Object.keys(orderRef.current).length;
     }
   });
 
-  // Reconstruct the players array based on the initial sorted order, 
-  // appending any new players to the end
-  const displayPlayers = [...players].sort((a, b) => {
-    const indexA = sortedPlayerIds.current.indexOf(a.id);
-    const indexB = sortedPlayerIds.current.indexOf(b.id);
-    return indexA - indexB;
-  });
+  const displayPlayers = [...players].sort((a, b) => (orderRef.current[a.id] || 0) - (orderRef.current[b.id] || 0));
 
-  const updateScore = (id: string, delta: number) => {
-    setPlayers(players.map((p: Player) => p.id === id ? { ...p, score: p.score + delta } : p));
+  const updatePlayer = (id: string, updates: Partial<Player>) => {
+    setPlayers(players.map(p => p.id === id ? { ...p, ...updates } : p));
   };
 
-  const updateName = (id: string, newName: string) => {
-    setPlayers(players.map((p: Player) => p.id === id ? { ...p, name: newName } : p));
-  };
-
-  const updateAvatar = (id: string, newAvatar: string) => {
-    setPlayers(players.map((p: Player) => p.id === id ? { ...p, avatar: newAvatar } : p));
-    setAvatarMenuId(null);
-  };
-
-  const handleFileUpload = (id: string, e: any) => {
+  const handleFileUpload = (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const url = URL.createObjectURL(file);
-      updateAvatar(id, url);
+      updatePlayer(id, { avatar: URL.createObjectURL(file) });
+      setAvatarMenuId(null);
     }
   };
 
   const addPlayer = () => {
-    const newId = String(Date.now());
     setPlayers([...players, {
-      id: newId,
+      id: String(Date.now()),
       name: `Player ${players.length + 1}`,
       score: 0,
       avatar: PRESET_AVATARS[players.length % PRESET_AVATARS.length]
@@ -224,53 +179,35 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
   };
 
   const handleResetClick = async () => {
-    if (players.length === 0) {
-      onReset();
-      return;
-    }
-    
+    if (!players.length) return onReset();
     setIsResetting(true);
     
-    const sortedPlayers = [...players].sort((a, b) => {
-      if (a.score !== b.score) {
-        return a.score - b.score;
-      }
-      const indexA = displayPlayers.findIndex(p => p.id === a.id);
-      const indexB = displayPlayers.findIndex(p => p.id === b.id);
-      return indexB - indexA;
-    });
+    const maxScore = Math.max(...players.map(p => p.score));
+    const sortedPlayers = [...players].sort((a, b) => 
+      a.score !== b.score ? a.score - b.score : (orderRef.current[b.id] || 0) - (orderRef.current[a.id] || 0)
+    );
     
-    for (let i = 0; i < sortedPlayers.length; i++) {
-      const player = sortedPlayers[i];
-      const isFirstPlace = i === sortedPlayers.length - 1;
-      
-      if (isFirstPlace) {
-        // Play audio 0.1s before the animation starts
-        const audio = new Audio('/fanfare.mp3');
-        audio.play().catch(e => console.log('Audio play failed', e));
-        await new Promise(r => setTimeout(r, 100));
-      }
-      
-      setAnimatingPlayerId(player.id);
-      
-      if (!isFirstPlace) {
-        // Swell up
-        await new Promise(r => setTimeout(r, 200));
-        // Pop (don't await the pop to finish, start next player's swell immediately)
-        setPoppedPlayerIds(prev => new Set(prev).add(player.id));
-      } else {
-        // Swell up larger and stay active
-        await new Promise(r => setTimeout(r, 2500));
-        
-        // Pop
-        setPoppedPlayerIds(prev => new Set(prev).add(player.id));
-        await new Promise(r => setTimeout(r, 100));
-      }
+    const nonWinners = sortedPlayers.filter(p => p.score !== maxScore);
+    const winners = sortedPlayers.filter(p => p.score === maxScore);
+
+    for (const p of nonWinners) {
+      setAnimatingPlayerIds(new Set([p.id]));
+      await new Promise(r => setTimeout(r, 200));
+      setPoppedPlayerIds(prev => new Set(prev).add(p.id));
+    }
+
+    if (winners.length > 0) {
+      new Audio('/fanfare.mp3').play().catch(() => {});
+      await new Promise(r => setTimeout(r, 100));
+      setAnimatingPlayerIds(new Set(winners.map(p => p.id)));
+      await new Promise(r => setTimeout(r, 2500));
+      setPoppedPlayerIds(prev => new Set([...prev, ...winners.map(p => p.id)]));
+      await new Promise(r => setTimeout(r, 100));
     }
     
     onReset();
     setIsResetting(false);
-    setAnimatingPlayerId(null);
+    setAnimatingPlayerIds(new Set());
     setPoppedPlayerIds(new Set());
   };
 
@@ -307,9 +244,10 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
 
           <div className="flex flex-col gap-2">
             {displayPlayers.map((player: Player) => {
-              const isAnimating = animatingPlayerId === player.id;
+              const isAnimating = animatingPlayerIds.has(player.id);
               const isPopped = poppedPlayerIds.has(player.id);
-              const isFirstPlace = [...players].sort((a, b) => a.score - b.score).pop()?.id === player.id;
+              const maxScore = Math.max(...players.map(p => p.score));
+              const isFirstPlace = player.score === maxScore;
 
               return (
               <motion.div 
@@ -359,7 +297,7 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
                       <input 
                         type="text" 
                         value={player.name}
-                        onChange={(e) => updateName(player.id, e.target.value)}
+                        onChange={(e) => updatePlayer(player.id, { name: e.target.value })}
                         onBlur={() => setEditingNameId(null)}
                         onKeyDown={(e) => e.key === 'Enter' && setEditingNameId(null)}
                         autoFocus
@@ -377,14 +315,14 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
                 </div>
 
                 <div className="flex items-center gap-1 md:gap-2 shrink-0">
-                  <button onClick={() => updateScore(player.id, -1)} className="text-gold-accent hover:text-primary transition-colors p-1">
+                  <button onClick={() => updatePlayer(player.id, { score: player.score - 1 })} className="text-gold-accent hover:text-primary transition-colors p-1">
                     <span className="material-symbols-outlined text-lg md:text-xl">remove</span>
                   </button>
                   <div className="bg-card-red text-white w-10 h-12 md:w-14 md:h-16 rounded-lg flex items-center justify-center shadow-md border-2 border-primary/30 relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-black/10 pointer-events-none"></div>
                     <span className="text-lg md:text-2xl font-bold font-trajan z-10">{player.score}</span>
                   </div>
-                  <button onClick={() => updateScore(player.id, 1)} className="text-gold-accent hover:text-primary transition-colors p-1" disabled={isResetting}>
+                  <button onClick={() => updatePlayer(player.id, { score: player.score + 1 })} className="text-gold-accent hover:text-primary transition-colors p-1" disabled={isResetting}>
                     <span className="material-symbols-outlined text-lg md:text-xl">add</span>
                   </button>
                 </div>
@@ -509,21 +447,28 @@ function Points({ players, setPlayers, onBack, onReset, isDarkMode, toggleDarkMo
   );
 }
 
-function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onDragEnd, isDarkMode, round, setRound, isResetting }: any) {
+type LandingProps = {
+  topCards: CardData[];
+  bottomCards: CardData[];
+  onOpenCalc: (section: 'top' | 'bottom', index: number, val: string) => void;
+  onOpenPoints: () => void;
+  onReset: () => void;
+  onDragEnd: (result: any) => void;
+  isDarkMode: boolean;
+  round: number;
+  setRound: (r: number) => void;
+  isResetting: boolean;
+};
+
+function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onDragEnd, isDarkMode, round, setRound, isResetting }: LandingProps) {
   const renderSection = (cards: CardData[], section: 'top' | 'bottom') => {
-    const hasEditedCards = cards.some(c => c.value !== null);
     const total = cards.reduce((sum, c) => sum + (c.value || 0), 0);
+    const hasEdited = cards.some(c => c.value !== null);
     
-    const totalElement = hasEditedCards ? (
+    const totalElement = hasEdited ? (
       <motion.div 
         initial={{ rotate: section === 'top' ? 180 : 0, opacity: 0, scale: 0.8 }}
-        animate={isResetting ? { 
-          opacity: 0, 
-          scale: 0.8, 
-          filter: "brightness(2) saturate(2) blur(10px)",
-          y: section === 'top' ? 20 : -20,
-          rotate: section === 'top' ? 180 : 0
-        } : { opacity: 1, scale: 1, rotate: section === 'top' ? 180 : 0, y: 0, filter: "none" }}
+        animate={isResetting ? { opacity: 0, scale: 0.8, filter: "brightness(2) saturate(2) blur(10px)", y: section === 'top' ? 20 : -20, rotate: section === 'top' ? 180 : 0 } : { opacity: 1, scale: 1, rotate: section === 'top' ? 180 : 0, y: 0, filter: "none" }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-[120px] md:max-w-[160px] relative h-8 md:h-10 rounded-lg md:rounded-xl overflow-hidden border-2 border-gold-accent card-shadow gold-bg-metallic flex items-center justify-center shrink-0 z-50"
       >
@@ -534,68 +479,31 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
     return (
       <section className="flex-1 flex flex-col justify-center items-center py-1 px-1 md:px-2 gap-1 md:gap-2 w-full min-h-0 overflow-hidden landscape:py-0 landscape:gap-0.5">
         {section === 'top' && totalElement}
-        
         <Droppable droppableId={section} direction="horizontal">
           {(provided) => (
-            <div 
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className="flex flex-row flex-nowrap justify-center items-center gap-1 md:gap-2 w-full px-1 md:px-2 min-h-0 flex-1 h-full landscape:gap-0.5"
-            >
+            <div ref={provided.innerRef} {...provided.droppableProps} className="flex flex-row flex-nowrap justify-center items-center gap-1 md:gap-2 w-full px-1 md:px-2 min-h-0 flex-1 h-full landscape:gap-0.5">
               {cards.map((card, idx) => {
                 const DraggableComponent = Draggable as any;
-                const isPlusCard = card.value === null;
-                const shouldAnimate = !isPlusCard && isResetting;
+                const isPlus = card.value === null;
+                const shouldAnimate = !isPlus && isResetting;
 
                 return (
-                <DraggableComponent key={card.id} draggableId={card.id} index={idx} isDragDisabled={isPlusCard || isResetting}>
+                <DraggableComponent key={card.id} draggableId={card.id} index={idx} isDragDisabled={isPlus || isResetting}>
                   {(provided: any, snapshot: any) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      className={`flex-1 min-w-0 flex items-center justify-center h-full @container ${snapshot.isDragging ? 'dragging' : ''}`}
-                      style={{
-                        ...provided.draggableProps.style,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
+                    <div ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} className={`flex-1 min-w-0 flex items-center justify-center h-full @container ${snapshot.isDragging ? 'dragging' : ''}`} style={{ ...provided.draggableProps.style, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <motion.div
                         className="w-full h-full flex items-center justify-center"
                         initial={false}
-                        animate={snapshot.isDragging ? {
-                          scale: 1.1,
-                          rotate: section === 'top' ? 182 : 2,
-                          filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))"
-                        } : shouldAnimate ? {
-                          scale: [1, 1.1, 0.9],
-                          opacity: [1, 1, 0],
-                          y: section === 'top' ? [0, 10, 40] : [0, -10, -40],
-                          rotate: section === 'top' ? [180, 182, 178, 180] : [0, 2, -2, 0],
-                          filter: [
-                            "brightness(1) saturate(1) blur(0px)",
-                            "brightness(2) saturate(4) contrast(1.5) drop-shadow(0 0 15px #ff4500) blur(2px)",
-                            "brightness(0) blur(10px)"
-                          ]
-                        } : { scale: 1, opacity: 1, y: 0, filter: "none", rotate: section === 'top' ? 180 : 0 }}
+                        animate={snapshot.isDragging ? { scale: 1.1, rotate: section === 'top' ? 182 : 2, filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.3))" } : shouldAnimate ? { scale: [1, 1.1, 0.9], opacity: [1, 1, 0], y: section === 'top' ? [0, 10, 40] : [0, -10, -40], rotate: section === 'top' ? [180, 182, 178, 180] : [0, 2, -2, 0], filter: ["brightness(1) saturate(1) blur(0px)", "brightness(2) saturate(4) contrast(1.5) drop-shadow(0 0 15px #ff4500) blur(2px)", "brightness(0) blur(10px)"] } : { scale: 1, opacity: 1, y: 0, filter: "none", rotate: section === 'top' ? 180 : 0 }}
                         transition={shouldAnimate ? { duration: 0.8, ease: "easeIn" } : { type: "spring", stiffness: 400, damping: 30 }}
                       >
-                        {!isPlusCard ? (
-                          <div 
-                            onClick={() => !isResetting && onOpenCalc(section, idx, String(card.value))}
-                            className="relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-lg card-shadow cursor-pointer hover:scale-105 transition-transform flex items-center justify-center"
-                          >
+                        {!isPlus ? (
+                          <div onClick={() => !isResetting && onOpenCalc(section, idx, String(card.value))} className="relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-lg card-shadow cursor-pointer hover:scale-105 transition-transform flex items-center justify-center">
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
                             <span className="relative z-10 font-bold gold-metallic-text font-trajan leading-none" style={{ fontSize: 'min(40cqw, 8cqh)' }}>{card.value}</span>
                           </div>
                         ) : (
-                          <button 
-                            onClick={() => !isResetting && onOpenCalc(section, idx, '')}
-                            className="group relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 card-shadow flex items-center justify-center disabled:opacity-50"
-                            disabled={isResetting}
-                          >
+                          <button onClick={() => !isResetting && onOpenCalc(section, idx, '')} disabled={isResetting} className="group relative w-full aspect-[60/90] max-w-[calc(100cqh*0.666)] rounded-md md:rounded-xl border-2 md:border-4 border-gold-accent bg-marble-red bg-cover overflow-hidden shadow-lg hover:scale-105 transition-transform duration-300 card-shadow flex items-center justify-center disabled:opacity-50">
                             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596541624738-4e89759d57a9?q=80&w=2574&auto=format&fit=crop')] opacity-80 mix-blend-multiply"></div>
                             <span className="relative z-10 material-symbols-outlined gold-metallic-text drop-shadow-lg" style={{ fontVariationSettings: "'FILL' 1", fontSize: 'min(40cqw, 8cqh)' }}>add_circle</span>
                             <div className="absolute inset-0 border-2 md:border-4 border-gold-accent/20 rounded-lg pointer-events-none"></div>
@@ -611,7 +519,6 @@ function Landing({ topCards, bottomCards, onOpenCalc, onOpenPoints, onReset, onD
             </div>
           )}
         </Droppable>
-
         {section === 'bottom' && totalElement}
       </section>
     );
@@ -751,31 +658,23 @@ export default function App() {
 
   const handleSaveCalc = (value: number) => {
     const { targetSection, targetIndex } = calcState;
+    if (targetSection === null || targetIndex === null) return;
     
     const updateCards = (cards: CardData[]) => {
-      let newCards = [...cards];
-      if (targetIndex !== null && targetIndex < newCards.length) {
+      const newCards = [...cards];
+      if (targetIndex < newCards.length) {
         newCards[targetIndex].value = value;
-        
-        let currentIndex = targetIndex;
-        
-        if (currentIndex === 0 && newCards.length < 10) {
-          newCards.unshift({ id: Date.now() + 'L', value: null });
-          currentIndex++;
-        }
-        
-        if (currentIndex === newCards.length - 1 && newCards.length < 10) {
-          newCards.push({ id: Date.now() + 'R', value: null });
-        }
+        const isFirst = targetIndex === 0;
+        const isLast = targetIndex === cards.length - 1;
+        if (isFirst && newCards.length < 10) newCards.unshift({ id: Date.now() + 'L', value: null });
+        if (isLast && newCards.length < 10) newCards.push({ id: Date.now() + 'R', value: null });
       }
       return newCards;
     };
 
-    if (targetSection === 'top') {
-      setTopCards(updateCards(topCards));
-    } else if (targetSection === 'bottom') {
-      setBottomCards(updateCards(bottomCards));
-    }
+    if (targetSection === 'top') setTopCards(updateCards(topCards));
+    else setBottomCards(updateCards(bottomCards));
+    
     setCalcState({ isOpen: false, targetSection: null, targetIndex: null, initialValue: '' });
   };
 
@@ -789,39 +688,23 @@ export default function App() {
     }, 800);
   };
 
-  const handleResetPoints = () => {
-    setPlayers([]);
-    setCycle(1);
-  };
+  const handleResetPoints = () => { setPlayers([]); setCycle(1); };
 
   const handleDragEnd = (result: any) => {
-    if (!result.destination) return;
+    if (!result.destination || result.source.droppableId !== result.destination.droppableId) return;
 
-    const { source, destination } = result;
+    const isTop = result.source.droppableId === 'top';
+    const items = [...(isTop ? topCards : bottomCards)];
+    let destIndex = result.destination.index;
+    
+    // Boundary checks for plus cards
+    if (items[0].value === null && destIndex === 0) destIndex = 1;
+    if (items[items.length - 1].value === null && destIndex === items.length - 1) destIndex = items.length - 2;
 
-    if (source.droppableId === destination.droppableId) {
-      const isTop = source.droppableId === 'top';
-      const items = Array.from(isTop ? topCards : bottomCards) as CardData[];
-      
-      let destIndex = destination.index;
-      
-      // Prevent dropping outside of plus cards
-      if (items[0].value === null && destIndex === 0) {
-        destIndex = 1;
-      }
-      if (items[items.length - 1].value === null && destIndex === items.length - 1) {
-        destIndex = items.length - 2;
-      }
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(destIndex, 0, reorderedItem);
 
-      const [reorderedItem] = items.splice(source.index, 1);
-      items.splice(destIndex, 0, reorderedItem);
-
-      if (isTop) {
-        setTopCards(items);
-      } else {
-        setBottomCards(items);
-      }
-    }
+    isTop ? setTopCards(items) : setBottomCards(items);
   };
 
   return (
